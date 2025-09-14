@@ -1,41 +1,38 @@
 import { Product } from '../../types/product';
-import ProductOne from '../../images/product/product-01.png';
-import ProductTwo from '../../images/product/product-02.png';
-import ProductThree from '../../images/product/product-03.png';
-import ProductFour from '../../images/product/product-04.png';
+import iconVentas from '../../images/icon/ventas.png';
 
 const productData: Product[] = [
   {
-    image: ProductOne,
-    name: 'Apple Watch Series 7',
-    category: 'Electronics',
-    price: 296,
-    sold: 22,
-    profit: 45,
+    image: iconVentas,
+    name: 'Venta de Vigas',
+    category: 'Estructuras Metálicas',
+    price: 12000,
+    sold: 5,
+    profit: 3500,
   },
   {
-    image: ProductTwo,
-    name: 'Macbook Pro M1',
-    category: 'Electronics',
-    price: 546,
-    sold: 12,
-    profit: 125,
+    image: iconVentas,
+    name: 'Venta de Placas Base',
+    category: 'Materiales',
+    price: 8000,
+    sold: 8,
+    profit: 2400,
   },
   {
-    image: ProductThree,
-    name: 'Dell Inspiron 15',
-    category: 'Electronics',
-    price: 443,
-    sold: 64,
-    profit: 247,
+    image: iconVentas,
+    name: 'Servicio de Montaje',
+    category: 'Servicios',
+    price: 15000,
+    sold: 2,
+    profit: 5000,
   },
   {
-    image: ProductFour,
-    name: 'HP Probook 450',
-    category: 'Electronics',
-    price: 499,
-    sold: 72,
-    profit: 103,
+    image: iconVentas,
+    name: 'Venta de Tornillos',
+    category: 'Herramientas',
+    price: 2000,
+    sold: 50,
+    profit: 800,
   },
 ];
 

@@ -44,7 +44,7 @@ const options: ApexOptions = {
   },
 
   xaxis: {
-    categories: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    categories: ['Vigas', 'Columnas', 'Placas', 'Tubos', 'Ángulos', 'Canales', 'Otros'],
   },
   legend: {
     position: 'top',
@@ -73,12 +73,12 @@ const ChartTwo: React.FC = () => {
   const [state, setState] = useState<ChartTwoState>({
     series: [
       {
-        name: 'Sales',
-        data: [44, 55, 41, 67, 22, 43, 65],
+        name: 'Inventario Inicial',
+        data: [200, 150, 180, 120, 100, 90, 60],
       },
       {
-        name: 'Revenue',
-        data: [13, 23, 20, 8, 13, 27, 15],
+        name: 'Inventario Final',
+        data: [180, 140, 170, 110, 95, 85, 55],
       },
     ],
   });
