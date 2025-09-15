@@ -30,7 +30,7 @@ function App() {
   ) : (
     <DefaultLayout>
   <Routes>
-        <Route index element={<><PageTitle title="eCommerce Dashboard | TailAdmin - Tailwind CSS Admin Dashboard Template" /><ECommerce /></>}/>
+        <Route index element={<><PageTitle title="ESTRUCTURAS S de RL de CV" /><ECommerce /></>}/>
         <Route path="/Produccion" element={<Produccion />} />
         <Route path="/compras-inventarios" element={<ComprasInventarios />} />
         <Route path="/ventas-crm" element={<VentasCRM />} />

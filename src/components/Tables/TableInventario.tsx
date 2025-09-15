@@ -2,34 +2,34 @@ import React, { useState } from 'react';
 import ModalInventarioNuevo from './ModalInventarioNuevo';
 import iconInventario from '../../images/icon/inventario.png';
 
-// Los datos se cargarán desde la base de datos vía API
-// const inventarioData = [];
-
 const TableInventario = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
   type InventarioItem = {
+    id: number;              
     nombre: string;
     categoria: string;
     cantidad: number;
     ubicacion: string;
   };
-  const [data, setData] = useState<InventarioItem[]>([]); // Inicialmente vacío
+
+  const [data, setData] = useState<InventarioItem[]>([]);
 
   // Cargar datos desde el backend al montar el componente
   React.useEffect(() => {
-    fetch('http://localhost:3001/api/inventario') // Cambia la URL según tu backend
+    fetch('http://localhost:3001/api/inventario')
       .then(res => res.json())
       .then(resData => setData(resData))
       .catch(err => {
-        setData([]); // Si hay error, muestra vacío
+        setData([]);
         console.error('Error al cargar inventario:', err);
       });
   }, []);
 
-    // Agrega un nuevo item al backend y actualiza la lista local
-  const handleAdd = async (item: InventarioItem) => {
+  // Agregar un nuevo item al backend y actualizar la lista local
+  const handleAdd = async (item: Omit<InventarioItem, 'id'>) => {
     try {
       const res = await fetch('http://localhost:3001/api/inventario', {
         method: 'POST',
@@ -39,7 +39,8 @@ const TableInventario = () => {
         body: JSON.stringify(item),
       });
       if (res.ok) {
-        setData([...data, item]);
+        const dataRes = await res.json();
+        setData([...data, { ...item, id: dataRes.id }]);
       } else {
         const error = await res.json();
         alert('Error al agregar: ' + (error.error || 'Error desconocido'));
@@ -52,20 +53,22 @@ const TableInventario = () => {
   // Editar item en el backend y actualizar la lista local
   const handleEdit = async (item: InventarioItem) => {
     if (editIndex === null) return;
+    const id = data[editIndex].id; 
     try {
-      const res = await fetch(`http://localhost:3001/api/inventario/${encodeURIComponent(item.nombre)}`, {
+      const res = await fetch(`http://localhost:3001/api/inventario/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          nombre: item.nombre,
           categoria: item.categoria,
           cantidad: item.cantidad,
           ubicacion: item.ubicacion
         }),
       });
       if (res.ok) {
-        setData(data.map((d, idx) => idx === editIndex ? item : d));
+        setData(data.map((d, idx) => idx === editIndex ? { ...item, id } : d));
       } else {
         const error = await res.json();
         alert('Error al editar: ' + (error.error || 'Error desconocido'));
@@ -79,9 +82,9 @@ const TableInventario = () => {
 
   // Eliminar item en el backend y actualizar la lista local
   const handleDelete = async (idx: number) => {
-    const nombre = data[idx].nombre;
+    const id = data[idx].id; 
     try {
-      const res = await fetch(`http://localhost:3001/api/inventario/${encodeURIComponent(nombre)}`, {
+      const res = await fetch(`http://localhost:3001/api/inventario/${id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -101,11 +104,21 @@ const TableInventario = () => {
         <h4 className="text-xl font-semibold text-black dark:text-white">
           Inventario
         </h4>
-        <button className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors text-sm font-medium" onClick={() => setShowModal(true)}>
+        <button
+          className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors text-sm font-medium"
+          onClick={() => setShowModal(true)}
+        >
           Agregar al inventario
         </button>
       </div>
-  {showModal && <ModalInventarioNuevo onClose={() => setShowModal(false)} onAdd={handleAdd} />} 
+
+      {showModal && (
+        <ModalInventarioNuevo
+          onClose={() => setShowModal(false)}
+          onAdd={handleAdd}
+        />
+      )}
+
       {showEditModal && (
         <ModalInventarioNuevo
           onClose={() => { setShowEditModal(false); setEditIndex(null); }}
@@ -113,6 +126,7 @@ const TableInventario = () => {
           defaultValue={editIndex !== null ? data[editIndex] : undefined}
         />
       )}
+
       <div className="grid grid-cols-7 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-9 md:px-6 2xl:px-7.5">
         <div className="col-span-2 flex items-center">
           <p className="font-medium">Producto</p>
@@ -130,10 +144,11 @@ const TableInventario = () => {
           <p className="font-medium">Acciones</p>
         </div>
       </div>
-  {data.map((item, key) => (
+
+      {data.map((item, key) => (
         <div
           className="grid grid-cols-7 border-t border-stroke py-4.5 px-4 dark:border-strokedark sm:grid-cols-9 md:px-6 2xl:px-7.5"
-          key={key}
+          key={item.id} 
         >
           <div className="col-span-2 flex items-center">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
