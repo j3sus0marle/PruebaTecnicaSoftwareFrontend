@@ -1,20 +1,37 @@
 import React, { useState } from 'react';
 
-const ModalInventarioNuevo = ({ onClose, onAdd, defaultValue }) => {
-  const [form, setForm] = useState(defaultValue || {
+type InventarioItem = {
+  nombre: string;
+  categoria: string;
+  cantidad: number;
+  ubicacion: string;
+};
+
+type ModalInventarioNuevoProps = {
+  onClose: () => void;
+  onAdd?: (item: InventarioItem) => void;
+  defaultValue?: InventarioItem;
+};
+
+const ModalInventarioNuevo: React.FC<ModalInventarioNuevoProps> = ({ onClose, onAdd, defaultValue }) => {
+  const [form, setForm] = useState<InventarioItem>(defaultValue || {
     nombre: '',
     categoria: '',
-    cantidad: '',
+    cantidad: 0,
     ubicacion: '',
   });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({
+      ...form,
+      [name]: name === 'cantidad' ? Number(value) : value
+    });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(form);
+    if (onAdd) onAdd(form);
     onClose();
   };
 

@@ -1,74 +1,98 @@
 import React, { useState } from 'react';
 import ModalInventarioNuevo from './ModalInventarioNuevo';
-const ModalInventario = ({ onClose, onAdd }) => {
-  const [form, setForm] = useState({
-    nombre: '',
-    categoria: '',
-    cantidad: '',
-    ubicacion: '',
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAdd(form);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-boxdark p-6 rounded shadow-lg w-full max-w-md">
-        <h3 className="text-lg font-bold mb-4 text-black dark:text-white">Agregar al Inventario</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Producto" className="w-full px-3 py-2 border rounded text-black" required />
-          <input name="categoria" value={form.categoria} onChange={handleChange} placeholder="Categoría" className="w-full px-3 py-2 border rounded text-black" required />
-          <input name="cantidad" value={form.cantidad} onChange={handleChange} placeholder="Cantidad" type="number" className="w-full px-3 py-2 border rounded text-black" required />
-          <input name="ubicacion" value={form.ubicacion} onChange={handleChange} placeholder="Ubicación" className="w-full px-3 py-2 border rounded text-black" required />
-          <div className="flex justify-end gap-2 mt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">Cancelar</button>
-            <button type="submit" className="px-4 py-2 bg-primary text-white rounded">Agregar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 import iconInventario from '../../images/icon/inventario.png';
 
-const inventarioData = [
-  { nombre: 'Viga de Acero', categoria: 'Materiales', cantidad: 20, ubicacion: 'Almacén Principal' },
-  { nombre: 'Placa Base', categoria: 'Materiales', cantidad: 35, ubicacion: 'Almacén Secundario' },
-  { nombre: 'Tornillo de Alta Resistencia', categoria: 'Herramientas', cantidad: 100, ubicacion: 'Almacén Principal' },
-  { nombre: 'Soldadora Industrial', categoria: 'Maquinaria', cantidad: 2, ubicacion: 'Taller' },
-  { nombre: 'Casco de Seguridad', categoria: 'Equipo de Seguridad', cantidad: 15, ubicacion: 'Almacén Principal' },
-  { nombre: 'Guantes Anticorte', categoria: 'Equipo de Seguridad', cantidad: 30, ubicacion: 'Almacén Secundario' },
-  { nombre: 'Cinta Métrica', categoria: 'Herramientas', cantidad: 25, ubicacion: 'Almacén Principal' },
-  { nombre: 'Taladro', categoria: 'Maquinaria', cantidad: 4, ubicacion: 'Taller' },
-  { nombre: 'Perfil Tubular', categoria: 'Materiales', cantidad: 40, ubicacion: 'Almacén Principal' },
-  { nombre: 'Pintura Epóxica', categoria: 'Materiales', cantidad: 10, ubicacion: 'Almacén Secundario' },
-];
+// Los datos se cargarán desde la base de datos vía API
+// const inventarioData = [];
 
 const TableInventario = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [data, setData] = useState(inventarioData);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  type InventarioItem = {
+    nombre: string;
+    categoria: string;
+    cantidad: number;
+    ubicacion: string;
+  };
+  const [data, setData] = useState<InventarioItem[]>([]); // Inicialmente vacío
 
-  const handleAdd = (item) => {
-    setData([...data, item]);
+  // Cargar datos desde el backend al montar el componente
+  React.useEffect(() => {
+    fetch('http://localhost:3001/api/inventario') // Cambia la URL según tu backend
+      .then(res => res.json())
+      .then(resData => setData(resData))
+      .catch(err => {
+        setData([]); // Si hay error, muestra vacío
+        console.error('Error al cargar inventario:', err);
+      });
+  }, []);
+
+    // Agrega un nuevo item al backend y actualiza la lista local
+  const handleAdd = async (item: InventarioItem) => {
+    try {
+      const res = await fetch('http://localhost:3001/api/inventario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(item),
+      });
+      if (res.ok) {
+        setData([...data, item]);
+      } else {
+        const error = await res.json();
+        alert('Error al agregar: ' + (error.error || 'Error desconocido'));
+      }
+    } catch (err) {
+      alert('Error de red al agregar item');
+    }
   };
 
-  const handleEdit = (item) => {
-    setData(data.map((d, idx) => idx === editIndex ? item : d));
+  // Editar item en el backend y actualizar la lista local
+  const handleEdit = async (item: InventarioItem) => {
+    if (editIndex === null) return;
+    try {
+      const res = await fetch(`http://localhost:3001/api/inventario/${encodeURIComponent(item.nombre)}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          categoria: item.categoria,
+          cantidad: item.cantidad,
+          ubicacion: item.ubicacion
+        }),
+      });
+      if (res.ok) {
+        setData(data.map((d, idx) => idx === editIndex ? item : d));
+      } else {
+        const error = await res.json();
+        alert('Error al editar: ' + (error.error || 'Error desconocido'));
+      }
+    } catch (err) {
+      alert('Error de red al editar item');
+    }
     setShowEditModal(false);
     setEditIndex(null);
   };
 
-  const handleDelete = (idx) => {
-    setData(data.filter((_, i) => i !== idx));
+  // Eliminar item en el backend y actualizar la lista local
+  const handleDelete = async (idx: number) => {
+    const nombre = data[idx].nombre;
+    try {
+      const res = await fetch(`http://localhost:3001/api/inventario/${encodeURIComponent(nombre)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setData(data.filter((_, i) => i !== idx));
+      } else {
+        const error = await res.json();
+        alert('Error al eliminar: ' + (error.error || 'Error desconocido'));
+      }
+    } catch (err) {
+      alert('Error de red al eliminar item');
+    }
   };
 
   return (
@@ -81,7 +105,7 @@ const TableInventario = () => {
           Agregar al inventario
         </button>
       </div>
-      {showModal && <ModalInventario onClose={() => setShowModal(false)} onAdd={handleAdd} />}
+  {showModal && <ModalInventarioNuevo onClose={() => setShowModal(false)} onAdd={handleAdd} />} 
       {showEditModal && (
         <ModalInventarioNuevo
           onClose={() => { setShowEditModal(false); setEditIndex(null); }}
